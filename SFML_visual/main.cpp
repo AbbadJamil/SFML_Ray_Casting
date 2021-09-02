@@ -14,6 +14,8 @@ Run the code
 	W A S D Keys are to move
 	Space Bar randomly generates a new 'map'
 
+	This file contains a lot of edits and commented out code as it is just for educational purposes
+
 *****************************************************************************************************/
 
 
