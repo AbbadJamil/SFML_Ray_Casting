@@ -1,0 +1,347 @@
+#include<iostream>
+#include <math.h>
+#include<SFML/Window.hpp>
+#include <SFML/Graphics.hpp>
+
+float DegreeorRadian(bool degrad, float angle) {
+	//Utility tool to convert degree to radian and vise versa
+	if (degrad == true) {
+		//degree to radian
+		angle *= 0.0174533;
+	}
+	else {
+		//radian to degree
+		angle /= 0.0174533;
+	}
+	return angle;
+}
+
+
+sf::Vertex xyFromAngleHypotenuse(float hypotenuse, float angle) {
+	sf::Vertex xy;
+	angle = DegreeorRadian(true, angle);
+	std::cout << "\n********Here is length and angle" << hypotenuse << " " << angle << std::endl;
+	xy.position.x = cosf(angle) * hypotenuse;
+	xy.position.y = sinf(angle) * hypotenuse;
+	return xy;
+}
+
+float AnglePointnMouse(sf::Vertex p1) {
+	sf::Vector2i p2 = sf::Mouse::getPosition();
+	return atanf((p2.y - p1.position.y) / (p2.x - p1.position.x));
+}
+
+class Boundary : public sf::Transformable, public sf::Drawable {
+private:
+	sf::VertexArray points;
+public:
+	Boundary() {
+		std::cout << "\nHello Boundary";
+		points.resize(2);
+		this->setOrigin(0, 0);
+		points.setPrimitiveType(sf::PrimitiveType::Lines);
+		points[0].position = sf::Vector2f(0.0f, 0.0f);
+		points[0].color = sf::Color::White;
+		points[1].position = sf::Vector2f(200.0f, 0.0f);
+		points[1].color = sf::Color::White;
+
+		this->setPosition(200, 100);
+		this->setRotation(90);
+	}
+	sf::VertexArray getPoints() {
+		return points;
+	}
+	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const {
+		states.transform = getTransform();
+		target.draw(points, states);
+	}
+};
+
+
+class Ray : public sf::Transformable, public sf::Drawable {
+private:
+	//aight motherfucker for fuck sake
+	//I need to define 2 points
+	//A vertex array
+	sf::VertexArray points;
+public:
+	Ray() {
+		std::cout << "Hello Ray";
+		points.resize(2);
+		points.setPrimitiveType(sf::PrimitiveType::Lines);
+		//this->setPosition(200.0f, 200.0f);
+		points[0].position = sf::Vector2f(0.0f, 0.0f);
+		points[0].color = sf::Color::White;
+		points[1].position = sf::Vector2f(40.0f, 0.0f);
+		points[1].color = sf::Color::White;
+	}
+
+	//sf::Vertex* Check(Boundary wall) {
+	bool Checkup(Boundary wall) {
+		sf::VertexArray wallpoints = wall.getPoints();
+		float x1, x2, y1, y2, x3, x4, y3, y4;
+		float wallangle = wall.getRotation();
+		float wallH;
+		wallH = sqrtf(powf(wallpoints[1].position.x - wallpoints[0].position.x, 2) + powf(wallpoints[1].position.y - wallpoints[0].position.y, 2));
+		std::cout << "\n*********HERE IS WALL H " << wallH << std::endl;
+		float rayangle = this->getRotation();
+		float rayH;
+		rayH = sqrtf(powf(this->points[1].position.x - this->points[0].position.x, 2) + powf(this->points[1].position.y - this->points[0].position.y, 2));
+		sf::Vertex wall1 = xyFromAngleHypotenuse(wallH, wallangle);
+		sf::Vertex ray1 = xyFromAngleHypotenuse(rayH, rayangle);
+
+		/*x1 = wallpoints[0].position.x + wall.getPosition().x;
+		x2 = wallpoints[0].position.x + wall.getPosition().x + wall1.position.x;
+		y1 = wallpoints[0].position.y + wall.getPosition().y;
+		y2 = wallpoints[0].position.y + wall.getPosition().y + wall1.position.y;
+		x3 = points[0].position.x + this->getPosition().x;
+		x4 = points[0].position.x + this->getPosition().x + ray1.position.y;
+		y3 = points[0].position.y + this->getPosition().y;
+		y4 = points[0].position.y + this->getPosition().y + ray1.position.y;
+		*/
+		/*x1 = wallpoints[0].position.x + wall.getPosition().x ; //originw.x + overallpositionofwall
+		x2 = wallpoints[1].position.x + wall.getPosition().x;//originw.x + overallpostitionof wall + xvalue
+		y1 = wallpoints[0].position.y + wall.getPosition().y;//originw.y + overallpositionofwall
+		y2 = wallpoints[1].position.y + wall.getPosition().y;//b.y + overallpositionofwall
+		x3 = points[0].position.x + this->getPosition().x;//originr.x + overallpositionofthis
+		x4 = points[1].position.x + this->getPosition().x;//d.x + overallpositionofthis
+		y3 = points[0].position.y + this->getPosition().y;//originr.y + overallpositionofthis
+		y4 = points[1].position.y + this->getPosition().y;//d.y + overallpositionofthis
+
+		std::cout << "wallpoint a: (" << x1 << ", " << y1 << std::endl;
+		std::cout << "wallpoint b: (" << x2 << ", " << y2 << std::endl;
+		std::cout << "raypoint a: (" << x3 << ", " << y3 << std::endl;
+		std::cout << "raypoint b: (" << x4 << ", " << y4 << std::endl;*/
+
+		x1 = wall.getPosition().x;
+		x2 = wall.getPosition().x + wall1.position.x;
+		y1 = wall.getPosition().y;
+		y2 = wall.getPosition().y + wall1.position.y;
+		x3 = this->getPosition().x;
+		x4 = this->getPosition().x + ray1.position.x;
+		y3 = this->getPosition().y;
+		y4 = this->getPosition().y + ray1.position.y;
+
+
+		std::cout << "wallpoint a: (" << x1 << ", " << y1 << std::endl;
+		std::cout << "wallpoint b: (" << x2 << ", " << y2 << std::endl;
+		std::cout << "raypoint a: (" << x3 << ", " << y3 << std::endl;
+		std::cout << "raypoint b: (" << x4 << ", " << y4 << std::endl;
+		//wallpoints[0].x and y = x1, y1;wallpoints[1] x and y = x2, y2; 
+		//points[0] x and y = x3, y3;points[1] x and y = x4, y4;
+
+		//wikipedia.org/wiki/Line%E2%80%93line_intersection
+		//we first calculate denominator - its common;
+		float denominator = (((x1 - x2) * (y3 - y4)) - ((y1 - y2) * (x3 - x4)));
+		std::cout << "\nDENOMINATOR: " << denominator << std::endl;
+
+
+		if (denominator == 0) {
+			points[0].color = (sf::Color::White);
+			points[1].color = (sf::Color::White);
+			return false;
+		}
+
+		float t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denominator;
+		float u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denominator;
+
+		if (t > 0 && t < 1 && u>0) {
+			std::cout << "\n\nt = " << t << std::endl;
+			std::cout << "\n\nu = " << u << std::endl;
+			points[0].color = (sf::Color::Red);
+			points[1].color = (sf::Color::Red);
+			return true;
+		}
+		else {
+			points[0].color = (sf::Color::White);
+			points[1].color = (sf::Color::White);
+			return false;
+		}
+
+	}
+
+
+	sf::Vector2f* Check(Boundary wall) {
+		sf::VertexArray wallpoints = wall.getPoints();
+		float x1, x2, y1, y2, x3, x4, y3, y4;
+		float wallangle = wall.getRotation();
+		float wallH;
+		wallH = sqrtf(powf(wallpoints[1].position.x - wallpoints[0].position.x, 2) + powf(wallpoints[1].position.y - wallpoints[0].position.y, 2));
+		std::cout << "\n*********HERE IS WALL H " << wallH << std::endl;
+		float rayangle = this->getRotation();
+		float rayH;
+		rayH = sqrtf(powf(this->points[1].position.x - this->points[0].position.x, 2) + powf(this->points[1].position.y - this->points[0].position.y, 2));
+		sf::Vertex wall1 = xyFromAngleHypotenuse(wallH, wallangle);
+		sf::Vertex ray1 = xyFromAngleHypotenuse(rayH, rayangle);
+
+		/*x1 = wallpoints[0].position.x + wall.getPosition().x;
+		x2 = wallpoints[0].position.x + wall.getPosition().x + wall1.position.x;
+		y1 = wallpoints[0].position.y + wall.getPosition().y;
+		y2 = wallpoints[0].position.y + wall.getPosition().y + wall1.position.y;
+		x3 = points[0].position.x + this->getPosition().x;
+		x4 = points[0].position.x + this->getPosition().x + ray1.position.y;
+		y3 = points[0].position.y + this->getPosition().y;
+		y4 = points[0].position.y + this->getPosition().y + ray1.position.y;
+		*/
+		/*x1 = wallpoints[0].position.x + wall.getPosition().x ; //originw.x + overallpositionofwall
+		x2 = wallpoints[1].position.x + wall.getPosition().x;//originw.x + overallpostitionof wall + xvalue
+		y1 = wallpoints[0].position.y + wall.getPosition().y;//originw.y + overallpositionofwall
+		y2 = wallpoints[1].position.y + wall.getPosition().y;//b.y + overallpositionofwall
+		x3 = points[0].position.x + this->getPosition().x;//originr.x + overallpositionofthis
+		x4 = points[1].position.x + this->getPosition().x;//d.x + overallpositionofthis
+		y3 = points[0].position.y + this->getPosition().y;//originr.y + overallpositionofthis
+		y4 = points[1].position.y + this->getPosition().y;//d.y + overallpositionofthis
+
+		std::cout << "wallpoint a: (" << x1 << ", " << y1 << std::endl;
+		std::cout << "wallpoint b: (" << x2 << ", " << y2 << std::endl;
+		std::cout << "raypoint a: (" << x3 << ", " << y3 << std::endl;
+		std::cout << "raypoint b: (" << x4 << ", " << y4 << std::endl;*/
+
+		x1 = wall.getPosition().x;
+		x2 = wall.getPosition().x + wall1.position.x;
+		y1 = wall.getPosition().y;
+		y2 = wall.getPosition().y + wall1.position.y;
+		x3 = this->getPosition().x;
+		x4 = this->getPosition().x + ray1.position.x;
+		y3 = this->getPosition().y;
+		y4 = this->getPosition().y + ray1.position.y;
+
+
+		std::cout << "wallpoint a: (" << x1 << ", " << y1 << std::endl;
+		std::cout << "wallpoint b: (" << x2 << ", " << y2 << std::endl;
+		std::cout << "raypoint a: (" << x3 << ", " << y3 << std::endl;
+		std::cout << "raypoint b: (" << x4 << ", " << y4 << std::endl;
+		//wallpoints[0].x and y = x1, y1;wallpoints[1] x and y = x2, y2; 
+		//points[0] x and y = x3, y3;points[1] x and y = x4, y4;
+
+		//wikipedia.org/wiki/Line%E2%80%93line_intersection
+		//we first calculate denominator - its common;
+		float denominator = (((x1 - x2) * (y3 - y4)) - ((y1 - y2) * (x3 - x4)));
+		std::cout << "\nDENOMINATOR: " << denominator << std::endl;
+
+
+		if (denominator == 0) {
+			points[0].color = (sf::Color::White);
+			points[1].color = (sf::Color::White);
+			return NULL;
+		}
+
+		float t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denominator;
+		float u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denominator;
+
+		if (t > 0 && t < 1 && u>0) {
+			std::cout << "\n\nt = " << t << std::endl;
+			std::cout << "\n\nu = " << u << std::endl;
+			points[0].color = (sf::Color::Red);
+			points[1].color = (sf::Color::Red);
+			sf::Vector2f PoI;
+			PoI.x = x1 + (t * (x2 - x1));
+			PoI.y = y1 + (t * (y2 - y1));
+			return &PoI;
+		}
+		else {
+			points[0].color = (sf::Color::White);
+			points[1].color = (sf::Color::White);
+			return NULL;
+		}
+
+	}
+
+	//look at function only works when x2 is in front of thisposition.x
+	//fixed it useing if statement
+	void lookat(float x2, float y2) {
+		float angle;
+		//std::cout << "hello";
+		float o = y2 - this->getPosition().y;
+		std::cout << "\n*******Value of O " << o << std::endl;
+		float a = x2 - this->getPosition().x;
+		std::cout << "\n*******Value of a " << a << std::endl;
+		angle = atanf((o / a));
+		if (x2 >= this->getPosition().x)
+		angle = DegreeorRadian(0, angle);
+		else
+			angle =  DegreeorRadian(0, angle) - 180;
+		this->setRotation(angle);
+		//this->setRotation(atanf((y2 - getPosition().y / (x2 - getPosition().x))));
+	}
+	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const
+	{
+		states.transform = getTransform();
+		target.draw(points, states);
+	}
+};
+
+
+
+int main() {
+	sf::RenderWindow window(sf::VideoMode(400, 400), "First Window!", sf::Style::Default);
+	window.setVerticalSyncEnabled(true);
+
+	sf::CircleShape point(10.0f);
+	point.setOrigin(point.getRadius(), point.getRadius());
+	point.setOutlineColor(sf::Color::White);
+
+	//sf::Vertex vert;
+	Ray ray;
+	ray.setPosition(330.0f, 200.0f);
+	Boundary wall;
+	bool collide;
+	//This is our boundary
+	/*float posArr[2];
+	sf::VertexArray Boundary;
+	Boundary.setPrimitiveType(sf::Lines);
+	Boundary.resize(2);
+	for (int i = 0; i < 2; i++) {
+		std::cout << "Enter 2 numbers in here\n";
+		std::cin >> posArr[0];
+		std::cin >> posArr[1];
+		Boundary[i].position = sf::Vector2f(posArr[0], posArr[1]);
+	}*/
+
+
+
+	while (window.isOpen()) {
+		sf::Event event;
+		while (window.pollEvent(event)) {
+			/*if (event.type == sf::Event::MouseMoved) {
+
+			point.setPosition();
+			}*/
+
+			if (event.type == sf::Event::MouseMoved)
+			{
+				point.setPosition(event.mouseMove.x, event.mouseMove.y);
+				ray.lookat(event.mouseMove.x, event.mouseMove.y);
+				//ray.setPosition(event.mouseMove.x, event.mouseMove.y);
+				//vert.position = sf::Vector2f (event.mouseMove.x, event.mouseMove.y);
+
+			}
+			else if (event.type == sf::Event::KeyPressed) {
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
+					ray.setRotation(ray.getRotation() + 5);
+				}
+				else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+				{
+					ray.setRotation(ray.getRotation() - 5);
+				}
+
+			}
+			else if (event.type == sf::Event::Closed)
+				window.close();
+		}
+		window.clear();
+		if (ray.Check(wall) != NULL) {
+			sf::Vector2f poi = *ray.Check(wall);
+			point.setPosition(poi);
+		}
+
+		window.draw(point);
+		window.draw(ray);
+		window.draw(wall);
+		window.display();
+
+	}
+
+
+	return 0;
+}
